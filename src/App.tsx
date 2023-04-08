@@ -1,92 +1,87 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import SearchBar from "./components/search-bar/search-bar.component";
+import CurrentWeather from "./components/current-weather/current-weather.compontent";
+import Forecast from "./components/forecast/forecast.component";
+import {
+  getWeatherDataByCoordinates,
+  getWeatherDataByCity,
+} from "../src/utils/weatherAPI";
+
+import { FaMoon } from "react-icons/fa";
+import { FaSun } from "react-icons/fa";
 
 function App() {
   const [search, setSearch] = useState("");
   const [weatherData, setWeatherData] = useState<any>(null);
+  const [darkMode, setDarkMode] = useState(false);
 
-  const searchHandler = (e: ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
+  const toggleDarkMode = () => {
+    setDarkMode((prevDarkMode) => !prevDarkMode);
   };
 
   const formHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const data = await getCityData(search);
+    if (!search) return;
+    const data = await getWeatherDataByCity(search);
     setWeatherData(data);
     console.log(data);
   };
 
-  function getCurrentPosition(): Promise<GeolocationPosition> {
+  const iconHandler = async () => {
+    if (!search) return;
+    const data = await getWeatherDataByCity(search);
+    setWeatherData(data);
+  };
+
+  function getUserGeolocation(): Promise<GeolocationPosition> {
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject);
     });
   }
 
-  async function getCurrentCityData(): Promise<Object> {
-    const position = await getCurrentPosition();
+  async function fetchWeatherData() {
+    const position = await getUserGeolocation();
     const { latitude, longitude } = position.coords;
-    const url = `https://api.weatherapi.com/v1/forecast.json?key=ec82da4207a945bfa0070148230404&q=${latitude},${longitude}&days=5&aqi=yes&alerts=yes`;
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
-  }
-
-  async function getCityData(city: string): Promise<Object> {
-    const url = `https://api.weatherapi.com/v1/forecast.json?key=ec82da4207a945bfa0070148230404&q=${city}&days=5&aqi=yes&alerts=yes&aqi=yes`;
-    const response = await fetch(url);
-    const data = await response.json();
+    const data = await getWeatherDataByCoordinates(latitude, longitude);
     return data;
   }
 
   useEffect(() => {
     (async function () {
-      const cityData = await getCurrentCityData();
+      const cityData = await fetchWeatherData();
       setWeatherData(cityData);
       console.log(cityData);
     })();
   }, []);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 transition-all">
-      <div className="flex w-10/12 flex-col rounded-2xl bg-white p-6 shadow-2xl md:p-16">
+    <div
+      className={`flex min-h-screen items-center justify-center ${
+        darkMode ? "bg-gray-900" : "bg-slate-100"
+      } `}
+    >
+      <div
+        className={`relative flex w-10/12 flex-col rounded-2xl ${
+          darkMode ? "bg-gray-800 text-white" : "bg-white"
+        } p-6 shadow-2xl md:p-16`}
+      >
+        <button
+          className="absolute right-4 top-4 focus:outline-none md:right-6 md:top-6"
+          onClick={toggleDarkMode}
+        >
+          {darkMode ? <FaSun /> : <FaMoon />}
+        </button>
         <h1 className="mb-6 text-center text-3xl font-bold">Weather App</h1>
-        <form onSubmit={formHandler} className="mb-6">
-          <input
-            onChange={searchHandler}
-            className="w-full rounded-md bg-slate-100 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            type="text"
-            value={search}
-            placeholder="Search city..."
-          />
-          <button
-            className="mt-4 rounded-md bg-indigo-500 px-6 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            type="submit"
-          >
-            Search
-          </button>
-        </form>
+        <SearchBar
+          search={search}
+          setSearch={setSearch}
+          formHandler={formHandler}
+          iconHandler={iconHandler}
+        />
         {weatherData && (
-          <div className="flex w-full flex-col">
-            <h2 className="mb-4 text-xl font-semibold">
-              {weatherData.location.name}, {weatherData.location.country}
-            </h2>
-            <div className="flex w-full justify-start space-x-2 overflow-x-auto">
-              {weatherData.forecast.forecastday.map((day: any) => (
-                <div
-                  key={day.date}
-                  className="flex flex-col items-center rounded-md bg-slate-100 p-4"
-                >
-                  <span className="mb-2">
-                    {new Date(day.date).toLocaleDateString()}
-                  </span>
-                  <img
-                    className="mb-2"
-                    src={day.day.condition.icon}
-                    alt={day.day.condition.text}
-                  />
-                  <span className="font-semibold">{day.day.avgtemp_c} °C</span>
-                </div>
-              ))}
-            </div>
+          <div className="flex flex-col md:flex-row md:gap-4 ">
+            <CurrentWeather weatherData={weatherData} darkMode={darkMode} />
+            <Forecast forecast={weatherData.forecast} darkMode={darkMode} />
           </div>
         )}
       </div>
