@@ -2,12 +2,12 @@ import React, { ChangeEvent, FormEvent } from "react";
 import { BsSearch } from "react-icons/bs";
 import { GrLocation } from "react-icons/gr";
 
-interface SearchBarProps {
+type SearchBarProps = {
   search: string;
   setSearch: React.Dispatch<React.SetStateAction<string>>;
-  formHandler: (e: FormEvent<HTMLFormElement>) => Promise<void>;
-  iconHandler: () => Promise<void>;
-}
+  formHandler: (e: FormEvent<HTMLFormElement>) => void;
+  iconHandler: () => void;
+};
 
 const SearchBar: React.FC<SearchBarProps> = ({
   search,

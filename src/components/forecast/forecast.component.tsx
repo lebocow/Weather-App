@@ -1,19 +1,20 @@
 import React from "react";
 import { IoMdWater } from "react-icons/io";
+import { Forecast } from "../../utils/weatherAPI";
 
-interface ForecastProps {
-  forecast: any;
+type ForecastProps = {
+  forecast: Forecast;
   darkMode: boolean;
-}
+};
 
 const Forecast: React.FC<ForecastProps> = ({ forecast, darkMode }) => {
   return (
-    <div className="mt-6 flex flex-col space-y-2 overflow-y-auto md:mt-0 md:w-1/2  ">
-      {forecast.forecastday.map((day: any) => (
+    <div className="col-start-2 row-start-1 flex flex-col space-y-2 overflow-y-auto md:mt-0 ">
+      {forecast.forecastday.map((day) => (
         <div
           key={day.date}
-          className={`grid grid-cols-5 items-center justify-items-center rounded-md bg-slate-100 p-1 text-xs sm:text-sm md:text-base ${
-            darkMode ? "bg-gray-700" : "bg-slate-100"
+          className={`grid grid-cols-5 items-center justify-items-center rounded-md p-1 text-xs sm:text-sm md:text-base ${
+            darkMode ? "bg-gray-700 text-white " : "bg-slate-100 text-black"
           } `}
         >
           <span className="justify-self-start">
